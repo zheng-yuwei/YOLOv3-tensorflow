@@ -1,0 +1,13 @@
+dog
+person
+train
+sofa
+chair
+car
+horse
+cat
+cow
+bus
+bicycle
+pottedplant
+diningtable
