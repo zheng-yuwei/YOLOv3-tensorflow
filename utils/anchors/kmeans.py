@@ -27,7 +27,7 @@ class KMeans(object):
         self.group = np.array([0] * self.num)  # 每个点归属的组的下标
         self.in_class_distance = 1e10  # 平均类内距离
     
-    def cluster(self, iter_total, loss_delta_thresh=1e-6, method='k-means++'):
+    def cluster(self, iter_total, loss_delta_thresh=1e-13, method='k-means++'):
         """
         初始化聚类中心
         :param iter_total: 迭代计算聚类中心次数

@@ -57,11 +57,19 @@ def test(yolov3_trainer, yolov3_decoder, save_path=None):
             break
         images, labels, image_paths = np.array(images), np.array(labels), np.array(image_paths)
         predictions = yolov3_trainer.predict(images)
-        predictions, predict_boxes = yolov3_decoder.decode(predictions)
-        for image, label, image_path, prediction, boxes in zip(images, labels, image_paths,
-                                                               np.array(predictions), np.array(predict_boxes)):
+        [(_, head_8_predicts, head_8_predicts_boxes),
+         (_, head_16_predicts, head_16_predicts_boxes),
+         (_, head_32_predicts, head_32_predicts_boxes)] = yolov3_decoder.decode(predictions)
+        for image, label, image_path, head_8_prediction, head_8_boxes, \
+            head_16_prediction, head_16_boxes, head_32_prediction, head_32_boxes in \
+                zip(images, labels, image_paths, np.array(head_8_predicts), np.array(head_8_predicts_boxes),
+                    np.array(head_16_predicts), np.array(head_16_predicts_boxes),
+                    np.array(head_32_predicts), np.array(head_16_predicts_boxes)):
             # (k, 8)， 归一化尺度->网络输入尺度的[(left top right bottom iou prob class score) ... ]
-            high_score_boxes = YOLOv3PostProcessor.filter_boxes(prediction, boxes, FLAGS.confidence_thresh)
+            high_score_boxes = YOLOv3PostProcessor.filter_boxes(head_8_prediction, head_8_boxes,
+                                                                head_16_prediction, head_16_boxes,
+                                                                head_32_prediction, head_32_boxes,
+                                                                FLAGS.confidence_thresh)
             nms_boxes = YOLOv3PostProcessor.apply_nms(high_score_boxes, FLAGS.nms_thresh)
             in_boxes = YOLOv3PostProcessor.resize_boxes(nms_boxes, target_size=input_box_size)
             if save_path is not None:
@@ -73,7 +81,7 @@ def test(yolov3_trainer, yolov3_decoder, save_path=None):
 
 def predict(yolov3_trainer, yolov3_decoder, image_paths, save_path):
     """
-    YOLO v2模型预测
+    YOLO v3模型预测
     :param yolov3_trainer: yolov3检测模型
     :param yolov3_decoder: yolov3模型输出解码器
     :param image_paths: 待预测图片路径列表
@@ -91,10 +99,19 @@ def predict(yolov3_trainer, yolov3_decoder, image_paths, save_path):
         image = tf.image.convert_image_dtype(image, dtype=tf.float32)
         image = np.array(image, dtype=np.float)
         predictions = yolov3_trainer.predict(np.expand_dims(image, axis=0))
-        predictions, predict_boxes = yolov3_decoder.decode(predictions)
-        prediction, boxes = np.array(predictions)[0], np.array(predict_boxes)[0]
+        [(_, head_8_predicts, head_8_predicts_boxes),
+         (_, head_16_predicts, head_16_predicts_boxes),
+         (_, head_32_predicts, head_32_predicts_boxes)] = yolov3_decoder.decode(predictions)
+        (head_8_prediction, head_8_boxes,
+         head_16_prediction, head_16_boxes,
+         head_32_prediction, head_32_boxes) = (head_8_predicts[0], head_8_predicts_boxes[0],
+                                               head_16_predicts[0], head_16_predicts_boxes[0],
+                                               head_32_predicts[0], head_32_predicts_boxes[0])
         # (k, 8)， 归一化尺度->网络输入尺度的[(left top right bottom iou prob class score) ... ]
-        high_score_boxes = YOLOv3PostProcessor.filter_boxes(prediction, boxes, FLAGS.confidence_thresh)
+        high_score_boxes = YOLOv3PostProcessor.filter_boxes(head_8_prediction, head_8_boxes,
+                                                            head_16_prediction, head_16_boxes,
+                                                            head_32_prediction, head_32_boxes,
+                                                            FLAGS.confidence_thresh)
         nms_boxes = YOLOv3PostProcessor.apply_nms(high_score_boxes, FLAGS.nms_thresh)
         in_boxes = YOLOv3PostProcessor.resize_boxes(nms_boxes, target_size=input_box_size)
         image_path = os.path.join(save_path, os.path.basename(image_path))
@@ -110,47 +127,6 @@ def run():
         config = tf.ConfigProto()
         config.gpu_options.allow_growth = True  # 按需
         sess = tf.Session(config=config)
-        """
-        # 添加debug：nan或inf过滤器
-        from tensorflow.python import debug as tf_debug
-        from tensorflow.python.debug.lib.debug_data import InconvertibleTensorProto
-        sess = tf_debug.LocalCLIDebugWrapperSession(sess)
-
-        # nan过滤器
-        def has_nan(datum, tensor):
-            _ = datum  # Datum metadata is unused in this predicate.
-            if isinstance(tensor, InconvertibleTensorProto):
-                # Uninitialized tensor doesn't have bad numerical values.
-                # Also return False for data types that cannot be represented as numpy
-                # arrays.
-                return False
-            elif (np.issubdtype(tensor.dtype, np.floating) or
-                  np.issubdtype(tensor.dtype, np.complex) or
-                  np.issubdtype(tensor.dtype, np.integer)):
-                return np.any(np.isnan(tensor))
-            else:
-                return False
-
-        # inf过滤器
-        def has_inf(datum, tensor):
-            _ = datum  # Datum metadata is unused in this predicate.
-            if isinstance(tensor, InconvertibleTensorProto):
-                # Uninitialized tensor doesn't have bad numerical values.
-                # Also return False for data types that cannot be represented as numpy
-                # arrays.
-                return False
-            elif (np.issubdtype(tensor.dtype, np.floating) or
-                  np.issubdtype(tensor.dtype, np.complex) or
-                  np.issubdtype(tensor.dtype, np.integer)):
-                return np.any(np.isinf(tensor))
-            else:
-                return False
-
-        # 添加过滤器
-        # sess.add_tensor_filter("has_nan", has_nan)
-        sess.add_tensor_filter("has_inf", has_inf)
-        # sess.add_tensor_filter("has_inf_or_nan", tf_debug.has_inf_or_nan)
-        """
         keras.backend.set_session(sess)
     
     generate_logger(filename=FLAGS.log_path)
@@ -170,7 +146,7 @@ def run():
             logging.info('多GPU训练模型转换单GPU运行模型成功，请使用单GPU测试！')
             return
         # 进行测试或预测
-        yolov3_decoder = YOLOv3Decoder(grid_size=FLAGS.head_grid_sizes, class_num=FLAGS.class_num,
+        yolov3_decoder = YOLOv3Decoder(head_grid_sizes=FLAGS.head_grid_sizes, class_num=FLAGS.class_num,
                                        anchor_boxes=FLAGS.anchor_boxes)
         save_path = FLAGS.save_path
         if save_path is not None:

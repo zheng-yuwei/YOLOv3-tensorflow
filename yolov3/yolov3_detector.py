@@ -64,7 +64,8 @@ class YOLOv3Detector(object):
         :param nets: 全卷积网络backbone的3个尺度的输出
         :param head_channel_nums: 3个检测头channel数
         :param head_names: 3个检测头的名字
-        :return: (/8, /16, /32)尺度的(N, H, W, grid_shape)矩阵
+        :return: (/8, /16, /32)尺度输出矩阵，经过reshape后所形成，
+                (N, H/32, W/32, head_8_channel*16 + head_16_channel*4 + head_32_channel)矩阵
         """
         sub_stride_8_net, sub_stride_16_net, sub_stride_32_net = nets
         stride_8_channel_num, stride_16_channel_num, stride_32_channel_num = head_channel_nums
@@ -75,7 +76,14 @@ class YOLOv3Detector(object):
                                                                  stride_16_channel_num, stride_16_head_name)
         head_8_feature = self._yolov3_stride_8_head(merge_net, sub_stride_8_net,
                                                     stride_8_channel_num, stride_8_head_name)
-        return [head_8_feature, head_16_feature, head_32_feature]
+        # 把三个输出reshape到stride 32的尺寸，concat一起输出，这样才能成为一个loss function的输入；或者使用add_loss实现
+        batch_size, head_32_height, head_32_width, _ = keras.backend.int_shape(head_32_feature)
+        reshape_layer_op = keras.layers.Reshape(target_shape=[head_32_height, head_32_width, -1])
+        reshape_head_16_feature = reshape_layer_op(head_16_feature)
+        reshape_head_8_feature = reshape_layer_op(head_8_feature)
+        merge_head = keras.layers.concatenate([reshape_head_8_feature, reshape_head_16_feature, head_32_feature],
+                                              axis=self.backbone.CHANNEL_AXIS)
+        return merge_head
     
     def _yolov3_stride_32_head(self, sub_stride_32_net, stride_32_channel_num, stride_32_head_name):
         """

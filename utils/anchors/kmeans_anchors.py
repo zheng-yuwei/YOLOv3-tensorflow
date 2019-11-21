@@ -49,7 +49,7 @@ def total_anchors(object_boxes, object_class_name=None, class_name_set=None):
     :return 聚类中心
     """
     # 开始聚类
-    cluster_machine = KMeans(object_boxes, k=5, distance_func=BoundingBox.distance, mean_func=BoundingBox.mean)
+    cluster_machine = KMeans(object_boxes, k=6, distance_func=BoundingBox.distance, mean_func=BoundingBox.mean)
     res = cluster_machine.cluster(iter_total=500)
     print('最后的聚类改进步长效果为:{:.8f}'.format(res))
     # 绘制聚类结果

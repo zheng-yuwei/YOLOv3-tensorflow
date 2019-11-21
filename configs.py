@@ -34,28 +34,29 @@ FLAGS.test_set_dir = 'dataset/test_sample/images'
 FLAGS.test_label_path = 'dataset/test_sample/label.txt'
 # 模型权重的L2正则化权重直接写在对应模型的骨干网络定义文件中
 FLAGS.input_image_size = np.array([384, 480, 3], dtype=np.int)  # [H, W, C]
-FLAGS.anchor_boxes = [[(0.039241071403663494, 0.05998447122692312), (0.08912580088342226, 0.12727066225137598),
-                      (0.09537634955564876, 0.3741189114763607)], [(0.223159706232924, 0.19864272607462152),
-                      (0.4306509490719188, 0.26309001170129964), (0.20124294050664832, 0.601784042463008)],
-                      [(0.48002823526303373, 0.4291672563116696), (0.5675597986439921, 0.6645559347201679),
-                      (0.8823402640806051, 0.8677712314837206)]]  # [W, H]
+FLAGS.anchor_boxes = [[(0.06618181818181816, 0.1025177510694752), (0.18544278606965178, 0.13160367921287464),
+                      (0.13, 0.32733333333333337)],
+                      [(0.13, 0.32733333333333337), (0.303806787732042, 0.34370030784316496)],
+                      [(0.303806787732042, 0.34370030784316496), (0.4667050847457627, 0.5281262429095761),
+                      (0.7906945888923907, 0.7888860433597275)]]  # [W, H]，分别是head_8, head_16, head_32的anchor boxes
 FLAGS.class_num = 0
 FLAGS.box_num = np.array([len(anchor_boxes) for anchor_boxes in FLAGS.anchor_boxes], dtype=np.int)
 FLAGS.box_len = 4 + 1 + FLAGS.class_num
 FLAGS.head_channel_nums = FLAGS.box_num * FLAGS.box_len
-FLAGS.head_grid_sizes = [FLAGS.input_image_size[0:2] // 8,
-                         FLAGS.input_image_size[0:2] // 16,
-                         FLAGS.input_image_size[0:2] // 32]  # [H, W],
+FLAGS.head_grid_sizes = [np.divide(FLAGS.input_image_size[0:2], 8).astype(np.int),
+                         np.divide(FLAGS.input_image_size[0:2], 16).astype(np.int),
+                         np.divide(FLAGS.input_image_size[0:2], 32).astype(np.int)]  # [H, W],
 FLAGS.head_names = ['yolov3_head_8', 'yolov3_head_16', 'yolov3_head_32', ]
 FLAGS.iou_thresh = 0.7  # 大于该IOU阈值，不计算该anchor的背景IOU误差
-FLAGS.loss_weights = [50, 100, 0.05, 10, 10]  # 不同损失项的权：[coord_xy, coord_wh, noobj, obj, cls_prob]
+# 不同head(/8, /16, /32)不同损失项的权：[coord_xy, coord_wh, noobj, obj, cls_prob]
+FLAGS.loss_weights = [(5, 10, 0.005, 1, 1), (20, 40, 0.02, 4, 4), (80, 160, 0.08, 16, 16)]
 # 训练参数
 FLAGS.train_set_size = 14
 FLAGS.val_set_size = 14
 FLAGS.batch_size = 5
 # 若你已经有预训练模型，给rectified_coord_num赋值为-1即可
 FLAGS.rectified_coord_num = 915  # 前期给坐标做矫正损失的图片数，源代码 12800，train-from-scratch需要用
-FLAGS.rectified_loss_weight = 1.0  # 前期矫正坐标的损失的权重，源代码 0.01，具体可调，太大的话coord_loss_wh会跟着爆炸
+FLAGS.rectified_loss_weight = [1.0, 4.0, 16.0]  # 前期矫正坐标的损失的权重，源代码 0.01，可调，太大的话coord_loss_wh会跟着爆炸
 FLAGS.epoch = 300
 FLAGS.init_lr = 0.0002  # nadam推荐使用值
 # 训练参数
@@ -65,7 +66,10 @@ FLAGS.optimizer = 'radam'  # sgdm, adam, radam
 FLAGS.is_augment = True
 FLAGS.is_label_smoothing = False
 FLAGS.is_focal_loss = False
+FLAGS.focal_alpha = 0.25
+FLAGS.focal_gamma = 2.0
 FLAGS.is_gradient_harmonized = False
+FLAGS.is_tiou_recall = False
 FLAGS.type = FLAGS.model_backbone + '-' + FLAGS.optimizer
 FLAGS.type += ('-aug' if FLAGS.is_augment else '')
 FLAGS.type += ('-smooth' if FLAGS.is_label_smoothing else '')
@@ -91,7 +95,7 @@ FLAGS.serving_model_dir = FLAGS.root_path + 'models/serving'
 FLAGS.pb_model_dir = FLAGS.root_path + 'models/pb'
 
 # 测试参数
-FLAGS.confidence_thresh = 0.5  # 基础置信度
+FLAGS.confidence_thresh = 0.7  # 基础置信度
 FLAGS.nms_thresh = 0.4  # nms阈值
 FLAGS.save_path = 'dataset/test_result/'  # 测试结果图形报错路径
 FLAGS.image_root_path = None  # 预测图片的根目录

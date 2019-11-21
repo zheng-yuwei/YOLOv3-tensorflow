@@ -10,6 +10,8 @@ from tensorflow import saved_model
 from tensorflow import keras
 
 from configs import FLAGS
+from utils.logger_callback import DetailLossLogger
+from utils.board_callback import MyTensorBoard
 from yolov3.yolov3_detector import YOLOv3Detector
 from yolov3.yolov3_loss import YOLOv3Loss
 
@@ -74,22 +76,24 @@ class YOLOv3Trainer(object):
         self.loss_function = YOLOv3Loss(FLAGS.head_grid_sizes, FLAGS.class_num,
                                         FLAGS.anchor_boxes, FLAGS.iou_thresh, FLAGS.loss_weights,
                                         rectified_coord_num=FLAGS.rectified_coord_num,
-                                        rectified_loss_weight=FLAGS.rectified_loss_weight).loss
+                                        rectified_loss_weight=FLAGS.rectified_loss_weight,
+                                        is_focal_loss=FLAGS.is_focal_loss,
+                                        focal_alpha=FLAGS.focal_alpha,
+                                        focal_gamma=FLAGS.focal_gamma,
+                                        is_tiou_recall=FLAGS.is_tiou_recall).loss
         self.model.compile(optimizer=optimizer, loss=self.loss_function)
+        
         # 设置模型训练参数
         self.epoch = FLAGS.epoch
 
         # 设置训练过程中的回调函数
-        tensorboard = keras.callbacks.TensorBoard(log_dir=FLAGS.tensorboard_dir)
         cp_callback = keras.callbacks.ModelCheckpoint(self.checkpoint_path, save_weights_only=True,
                                                       verbose=1, period=FLAGS.ckpt_period)
         es_callback = keras.callbacks.EarlyStopping(monitor='loss', min_delta=FLAGS.stop_min_delta,
                                                     patience=FLAGS.stop_patience, verbose=0, mode='min')
         lr_callback = keras.callbacks.LearningRateScheduler(FLAGS.lr_func)
-
-        from utils.logger_callback import DetailLossProgbarLogger
-        log_callback = DetailLossProgbarLogger()
-
+        log_callback = DetailLossLogger(verbose=2)
+        tensorboard = MyTensorBoard(log_dir=FLAGS.tensorboard_dir)
         self.callbacks = [tensorboard, cp_callback, es_callback, lr_callback, log_callback]
 
     def train(self, train_set, val_set, train_steps=FLAGS.steps_per_epoch, val_steps=FLAGS.validation_steps):
@@ -104,10 +108,10 @@ class YOLOv3Trainer(object):
         if val_set:
             self.history = self.model.fit(train_set, epochs=self.epoch, validation_data=val_set,
                                           steps_per_epoch=train_steps, validation_steps=val_steps,
-                                          callbacks=self.callbacks, verbose=2)
+                                          callbacks=self.callbacks, verbose=0)
         else:
             self.history = self.model.fit(train_set, epochs=self.epoch, steps_per_epoch=train_steps,
-                                          callbacks=self.callbacks, verbose=2)
+                                          callbacks=self.callbacks, verbose=0)
         logging.info('模型训练完毕！')
 
     def predict(self, test_images):
@@ -159,7 +163,8 @@ class YOLOv3Trainer(object):
         logging.info("pb模型保存成功！")
 
     def save_serving(self):
-        """ 使用TensorFlow Serving时的保存方式：
+        """
+        使用TensorFlow Serving时的保存方式：
             serving-save-dir/
                 saved_model.pb
                 variables/

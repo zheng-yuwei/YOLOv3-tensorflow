@@ -1,16 +1,16 @@
-# YOLOv2-tensorflow
+# YOLOv3-tensorflow
 
 By 郑煜伟
 
-基于tf.keras，实现YOLOv2模型。
-## 本项目相比其他YOLO v2项目的特色
+基于tf.keras，实现YOLOv3模型。
+## 本项目相比其他YOLO v3项目的特色
 
-与TensorFlow版本的YOLO v2项目相比，**最大程度遵从原始论文、原始Darknet框架的实现&**
+与TensorFlow版本的YOLO v3项目相比，**最大程度遵从原始论文、原始Darknet框架的实现&**
 （可以说解决了逻辑bug吧，具体可查看`1_learning_note/implementation_process.ipynb`）；
 
 与原版Darknet、Caffe实现相比，train-from-scratch的预测框校正功能可根据实际情况进行开启/关闭；
 
-与所有YOLO v2项目相比：
+与所有YOLO v3项目相比：
 1. 使用tf.data.Dataset读取数据，tf.keras构造模型，简单易懂，同时易于多GPU训练、模型转换等操作；
 2. 全中文详细代码注释，算法理解等说明。
 
@@ -55,11 +55,11 @@ By 郑煜伟
     - `logger.py`：构造文件和控制台日志句柄；
     - `logger_callback.py`: 日志打印的keras回调函数；
     - `radam.py`: RAdam算法的tf.keras优化器实现；
-- `yolov3`: yolov2模型构建脚本；
+- `yolov3`: yolov3模型构建脚本；
     - `train.py`: 模型训练接口，集成模型构建/编译/训练/debug/预测、数据集构建等功能；
-    - `yolov3_decoder.py`: 对YOLO v2模型的预测输出进行解码；
-    - `yolov3_detector.py`: 构造YOLO v2检测器模型；
-    - `yolov3_loss.py`: YOLO v2的损失函数；
+    - `yolov3_decoder.py`: 对YOLO v3模型的预测输出进行解码；
+    - `yolov3_detector.py`: 构造YOLO v3检测器模型；
+    - `yolov3_loss.py`: YOLO v3的损失函数；
 - `configs.py`: 配置文件；
 - `run.py`: 启动脚本；
 
@@ -80,7 +80,7 @@ image_path x0 y0 w0 h0 cls0 ...
 
 ## 算法说明
 
-[YOLOv2](https://zheng-yuwei.github.io/2018/10/03/4_YOLOv2/)
+[YOLOv3](https://zheng-yuwei.github.io/2018/12/15/5_YOLOv3/)
 
 ## TODO
 1. 输入数据处理: mixup，多尺度输入；
