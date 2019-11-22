@@ -49,14 +49,14 @@ FLAGS.head_grid_sizes = [np.divide(FLAGS.input_image_size[0:2], 8).astype(np.int
 FLAGS.head_names = ['yolov3_head_8', 'yolov3_head_16', 'yolov3_head_32', ]
 FLAGS.iou_thresh = 0.7  # 大于该IOU阈值，不计算该anchor的背景IOU误差
 # 不同head(/8, /16, /32)不同损失项的权：[coord_xy, coord_wh, noobj, obj, cls_prob]
-FLAGS.loss_weights = [(5, 10, 0.005, 1, 1), (20, 40, 0.02, 4, 4), (80, 160, 0.08, 16, 16)]
+FLAGS.loss_weights = [(100, 200, 0.1, 20, 10), (50, 100, 0.2, 20, 1), (50, 100, 0.2, 20, 1)]
 # 训练参数
-FLAGS.train_set_size = 14
-FLAGS.val_set_size = 14
-FLAGS.batch_size = 5
+FLAGS.train_set_size = 20
+FLAGS.val_set_size = 20
+FLAGS.batch_size = 6
 # 若你已经有预训练模型，给rectified_coord_num赋值为-1即可
-FLAGS.rectified_coord_num = 915  # 前期给坐标做矫正损失的图片数，源代码 12800，train-from-scratch需要用
-FLAGS.rectified_loss_weight = [1.0, 4.0, 16.0]  # 前期矫正坐标的损失的权重，源代码 0.01，可调，太大的话coord_loss_wh会跟着爆炸
+FLAGS.rectified_coord_num = 1464  # 前期给坐标做矫正损失的图片数，源代码 12800，train-from-scratch需要用
+FLAGS.rectified_loss_weight = [1.0, 1.0, 1.0]  # 前期矫正坐标的损失的权重，源代码 0.01，可调，太大的话coord_loss_wh会跟着爆炸
 FLAGS.epoch = 300
 FLAGS.init_lr = 0.0002  # nadam推荐使用值
 # 训练参数
@@ -95,7 +95,7 @@ FLAGS.serving_model_dir = FLAGS.root_path + 'models/serving'
 FLAGS.pb_model_dir = FLAGS.root_path + 'models/pb'
 
 # 测试参数
-FLAGS.confidence_thresh = 0.7  # 基础置信度
+FLAGS.confidence_thresh = 0.85  # 基础置信度
 FLAGS.nms_thresh = 0.4  # nms阈值
 FLAGS.save_path = 'dataset/test_result/'  # 测试结果图形报错路径
 FLAGS.image_root_path = None  # 预测图片的根目录

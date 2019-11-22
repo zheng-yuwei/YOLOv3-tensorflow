@@ -64,7 +64,7 @@ def test(yolov3_trainer, yolov3_decoder, save_path=None):
             head_16_prediction, head_16_boxes, head_32_prediction, head_32_boxes in \
                 zip(images, labels, image_paths, np.array(head_8_predicts), np.array(head_8_predicts_boxes),
                     np.array(head_16_predicts), np.array(head_16_predicts_boxes),
-                    np.array(head_32_predicts), np.array(head_16_predicts_boxes)):
+                    np.array(head_32_predicts), np.array(head_32_predicts_boxes)):
             # (k, 8)， 归一化尺度->网络输入尺度的[(left top right bottom iou prob class score) ... ]
             high_score_boxes = YOLOv3PostProcessor.filter_boxes(head_8_prediction, head_8_boxes,
                                                                 head_16_prediction, head_16_boxes,
