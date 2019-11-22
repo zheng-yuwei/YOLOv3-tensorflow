@@ -31,7 +31,12 @@ By 郑煜伟
 - 绿色框源于head /16，由于该head stride适中，特征图分辨率适中，所以设置中等anchor，聚焦于检测中等物体；
 - 红色框源于head /32，由于该head stride大，特征图分辨率大，所以设置大anchor，聚焦于检测大物体；
 
-具体实验调参过程中，可以参考测试绘制的框的情况，调整参数。
+具体实验调参过程中，可以参考测试绘制的框的情况（结合训练过程中loss变化），调整参数。
+
+![loss-scalar](../images/tensorboard_loss.jpg)
+
+![gamma-histogram](../images/tensorboard_gamma.jpg)
+
 
 ### 快速上手
 
