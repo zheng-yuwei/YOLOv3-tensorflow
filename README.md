@@ -33,9 +33,9 @@ By 郑煜伟
 
 具体实验调参过程中，可以参考测试绘制的框的情况（结合训练过程中loss变化），调整参数。
 
-![loss-scalar](../images/tensorboard_loss.jpg)
+![loss-scalar](./images/tensorboard_loss.jpg)
 
-![gamma-histogram](../images/tensorboard_gamma.jpg)
+![gamma-histogram](./images/tensorboard_gamma.jpg)
 
 
 ### 快速上手
