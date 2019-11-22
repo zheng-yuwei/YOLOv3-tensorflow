@@ -47,7 +47,7 @@ By 郑煜伟
 
 ![不同聚类中心下，待检测目标与归属anchor的IOU-样本比例的ROC曲线](./images/IOU-Ratio-curve.png)
 
-以上的IOU-Ratio曲线需要从右往左看，表示随着与聚类中心IOU越小，类内label框的占比比例。
+以上的IOU-Ratio曲线需要**从右往左看**，表示随着与聚类中心IOU越小，类内label框的占比比例。
 
 ### 学习掌握
 
