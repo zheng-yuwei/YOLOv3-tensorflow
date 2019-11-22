@@ -29,7 +29,7 @@ By 郑煜伟
 
 - 蓝色框源于head /8，由于该head stride小，特征图分辨率高，所以设置小anchor，聚焦于检测小物体；
 - 绿色框源于head /16，由于该head stride适中，特征图分辨率适中，所以设置中等anchor，聚焦于检测中等物体；
-- 红色框源于head /32，由于该head stride大，特征图分辨率大，所以设置大anchor，聚焦于检测大物体；
+- 红色框源于head /32，由于该head stride大，特征图分辨率小，所以设置大anchor，聚焦于检测大物体；
 
 具体实验调参过程中，可以参考测试绘制的框的情况（结合训练过程中loss变化），调整参数。
 
@@ -52,7 +52,7 @@ By 郑煜伟
 
 ![不同聚类中心下，待检测目标与归属anchor的IOU-样本比例的ROC曲线](./images/IOU-Ratio-curve.png)
 
-以上的IOU-Ratio曲线需要从右往左看，表示随着与聚类中心IOU越小，类内label框的占比比例。
+以上的IOU-Ratio曲线需要**从右往左看**，表示随着与聚类中心IOU越小，类内label框的占比比例。
 
 ### 学习掌握
 
