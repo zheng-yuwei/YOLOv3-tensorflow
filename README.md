@@ -1,21 +1,15 @@
 # YOLOv3-tensorflow
 
-By 郑煜伟
-
 基于tf.keras，实现YOLOv3模型。
 
 本项目延伸自[本人的YOLO v2实现](https://github.com/zheng-yuwei/YOLOv2-tensorflow)。
 
 ## 本项目相比其他YOLO v3项目的特色
 
-与TensorFlow版本的YOLO v3项目相比，**最大程度遵从原始论文、原始Darknet框架的实现&**
-（可以说解决了逻辑bug吧，具体可查看`1_learning_note/implementation_process.ipynb`）；
-
-与原版Darknet、Caffe实现相比，train-from-scratch的预测框校正功能可根据实际情况进行开启/关闭；
-
 与所有YOLO v3项目相比：
 1. 使用tf.data.Dataset读取数据，tf.keras构造模型，简单易懂，同时易于多GPU训练、模型转换等操作；
-2. 全中文详细代码注释，算法理解等说明。
+1. 全中文详细代码注释，算法理解等说明；
+1. 自由开启/关闭train-from-scratch的预测框校正功能。
 
 需要注意的：
 - YOLOv3的head用了2（head /32)、7（head /16）、7（head /8）层卷积，与我的实现有差异；
@@ -131,6 +125,8 @@ MixNet是Google在**轻量级网络结构**上探索的又一成果。
 我在`backbone`中实现的MixNet并不是论文中的网络结构，而是使用了MixConv不同卷积核尺寸的思想构造的网络。
 
 ## TODO
+
+- [x] RAdam;
 - [ ] 多尺度输入;
 - [ ] mixup;
 - [x] focal loss;
