@@ -12,7 +12,7 @@ from yolov3.label_decoder import LabelDecoder
 
 class YOLOv3Loss(object):
     """ YOLOv3损失函数 """
-    
+
     def __init__(self, head_grid_sizes, class_num, anchor_boxes, iou_thresh, loss_weights,
                  rectified_coord_num=0, rectified_loss_weight=None,
                  is_focal_loss=False, focal_alpha=0.25, focal_gamma=2.0, is_tiou_recall=False):
@@ -69,15 +69,15 @@ class YOLOv3Loss(object):
         self.current_num = keras.backend.variable(0, dtype=tf.int32, name='current_image_num')
         # 用于记录损失函数的细节
         with tf.variable_scope('loss_detail'):
-            self.rectified_coord_loss = tf.get_variable('rectified_coord_loss', shape=(3, ),
+            self.rectified_coord_loss = tf.get_variable('rectified_coord_loss', shape=(3,),
                                                         initializer=tf.constant_initializer(0.0))
-            self.coord_loss_xy = tf.get_variable('coord_loss_xy', shape=(3, ), initializer=tf.constant_initializer(0.0))
-            self.coord_loss_wh = tf.get_variable('coord_loss_wh', shape=(3, ), initializer=tf.constant_initializer(0.0))
-            self.noobj_iou_loss = tf.get_variable('noobj_iou_loss', shape=(3, ),
+            self.coord_loss_xy = tf.get_variable('coord_loss_xy', shape=(3,), initializer=tf.constant_initializer(0.0))
+            self.coord_loss_wh = tf.get_variable('coord_loss_wh', shape=(3,), initializer=tf.constant_initializer(0.0))
+            self.noobj_iou_loss = tf.get_variable('noobj_iou_loss', shape=(3,),
                                                   initializer=tf.constant_initializer(0.0))
-            self.obj_iou_loss = tf.get_variable('obj_iou_loss', shape=(3, ), initializer=tf.constant_initializer(0.0))
-            self.class_loss = tf.get_variable('class_loss', shape=(3, ), initializer=tf.constant_initializer(0.0))
-        
+            self.obj_iou_loss = tf.get_variable('obj_iou_loss', shape=(3,), initializer=tf.constant_initializer(0.0))
+            self.class_loss = tf.get_variable('class_loss', shape=(3,), initializer=tf.constant_initializer(0.0))
+
     def loss(self, targets, predicts):
         """
         计算YOLO v3损失函数
@@ -123,14 +123,14 @@ class YOLOv3Loss(object):
         # [rectified_coord_loss, coord_loss_xy, coord_loss_wh, noobj_iou_loss, obj_iou_loss, class_loss]
         # [rectified_8_loss, rectified_16_loss, rectified_32_loss]
         total_loss = tf.cond(self.current_num <= self.rectified_coord_num,
-                             lambda:  tf.concat([yolov3_loss,
-                                                 self._get_rectified_coord_loss(_head_8_predicts,
-                                                                                _head_16_predicts,
-                                                                                _head_32_predicts)], axis=0),
+                             lambda: tf.concat([yolov3_loss,
+                                                self._get_rectified_coord_loss(_head_8_predicts,
+                                                                               _head_16_predicts,
+                                                                               _head_32_predicts)], axis=0),
                              lambda: yolov3_loss)
         update_op = tf.cond(self.current_num <= self.rectified_coord_num,
                             lambda: update_op + [self.rectified_coord_loss.assign(total_loss[5])],
-                            lambda: update_op + [self.rectified_coord_loss.assign(tf.zeros(shape=(3, ),
+                            lambda: update_op + [self.rectified_coord_loss.assign(tf.zeros(shape=(3,),
                                                                                            dtype=tf.float32))])
         # 5. 汇总所有损失
         with tf.control_dependencies(update_op):
@@ -153,7 +153,7 @@ class YOLOv3Loss(object):
             head_8_rectified_loss = tf.reduce_sum(tf.square(_head_8_predicts), axis=[1, 2, 3, 4])
             head_16_rectified_loss = tf.reduce_sum(tf.square(_head_16_predicts), axis=[1, 2, 3, 4])
             head_32_rectified_loss = tf.reduce_sum(tf.square(_head_32_predicts), axis=[1, 2, 3, 4])
-    
+
             rectified_8_loss = tf.multiply(self.rectified_8_weight,
                                            tf.reduce_mean(head_8_rectified_loss, keepdims=True))
             rectified_16_loss = tf.multiply(self.rectified_16_weight,
@@ -194,7 +194,7 @@ class YOLOv3Loss(object):
             # 中心点grid所有anchor与对应的实际物体的最大IOU (valid_num,) = head_x_response_max_iou
             # 及其坐标[[H, W, B] * valid_num] = head_x_target_grid_xyz
             head_8_max_iou, head_8_response_max_iou, head_8_target_grid_xyz = self._calc_iou(
-                head_8_target, head_8_target_boxes, head_8_predict, head_8_predict_boxes,  valid_obj_num)
+                head_8_target, head_8_target_boxes, head_8_predict, head_8_predict_boxes, valid_obj_num)
             head_16_max_iou, head_16_response_max_iou, head_16_target_grid_xyz = self._calc_iou(
                 head_16_target, head_16_target_boxes, head_16_predict, head_16_predict_boxes, valid_obj_num)
             head_32_max_iou, head_32_response_max_iou, head_32_target_grid_xyz = self._calc_iou(
@@ -220,7 +220,7 @@ class YOLOv3Loss(object):
                                               self.iou_thresh)
         loss = tf.stack([head_8_loss, head_16_loss, head_32_loss], axis=-1)
         return loss
-    
+
     @staticmethod
     def _get_valid_target(head_8_target, head_8_target_boxes,
                           head_16_target, head_16_target_boxes,
@@ -250,7 +250,7 @@ class YOLOv3Loss(object):
                    head_32_target, head_32_target_boxes,
                    valid_obj_num)
         return targets
-    
+
     def _calc_iou(self, target, target_boxes, predict, predict_boxes, valid_obj_num):
         """
         所有grid的所有anchor的预测框，与所有真实物体框的最大IOU（后续用于确定是否是背景）
@@ -293,14 +293,15 @@ class YOLOv3Loss(object):
             iou = iou * inter_area / target_area
         max_iou = tf.reduce_max(iou, axis=-1, keepdims=False)  # (H, W, B)
         # 中心点grid所有anchor与对应的实际物体的最大IOU (valid_num,)，及其坐标(valid_num, 3),[[H, W, B] * valid_num]
-        response_iou = response_inter_area / (response_area + tf.expand_dims(target_area, axis=-1) - response_inter_area)
+        response_iou = response_inter_area / (
+                response_area + tf.expand_dims(target_area, axis=-1) - response_inter_area)
         if self.is_tiou_recall:
             response_iou = response_iou * response_inter_area / tf.expand_dims(target_area, axis=-1)
         response_max_iou = tf.reduce_max(response_iou, axis=-1, keepdims=False)
         max_arg = tf.arg_max(response_iou, dimension=-1, output_type=tf.int32)
         response_grid_xyz = tf.concat([response_grid_xy, tf.expand_dims(max_arg, axis=-1)], axis=-1)
         return max_iou, response_max_iou, response_grid_xyz
-    
+
     def _single_head_loss(self, head_index, predict, target, max_iou, response_max_iou, target_grid_xyz, max_pos,
                           height, width, box_num, iou_thresh):
         """
@@ -321,7 +322,7 @@ class YOLOv3Loss(object):
         # 0. 获取3个head中和gt最大的IOU和对应的坐标 [[H, W, B], ...]
         response_max_iou = tf.gather_nd(response_max_iou, max_pos)
         target_grid_xyz = tf.gather_nd(target_grid_xyz, max_pos)
-    
+
         # 1. 得到 object_mask 和 background_mask
         # 根据response anchor的位置，得到负责前景目标的grid、anchor的mask，(H, W, B)
         object_mask = tf.sparse_to_dense(sparse_indices=target_grid_xyz, output_shape=[height, width, box_num],
@@ -349,8 +350,17 @@ class YOLOv3Loss(object):
             obj_iou_loss = obj_iou_loss * (tf.pow(1 - response_pred[:, 4], self.focal_gamma) * self.focal_alpha)
         obj_iou_loss = self.obj_weight[head_index] * tf.reduce_sum(obj_iou_loss)  # CE损失函数
         # 2.3 计算坐标损失：loss(xy) + loss(wh)
-        coord_loss_xy = self.coord_xy_weight[head_index] * tf.reduce_sum(tf.square(response_target[:, 0:2] -
-                                                                                   response_pred[:, 0:2]))
+        # mse_xy
+        # coord_loss_xy = self.coord_xy_weight[head_index] * tf.reduce_sum(tf.square(response_target[:, 0:2] -
+        #                                                                            response_pred[:, 0:2]))
+        # log_xy
+        coord_int = tf.floor(response_target[:, 0:2])
+        coord_target_xy = response_target[:, 0:2] - coord_int
+        coord_pred_xy = response_pred[:, 0:2] - coord_int
+        coord_loss_xy = self.coord_xy_weight[head_index] * tf.reduce_sum(
+            -(coord_target_xy * tf.log(coord_pred_xy) +
+              (1 - coord_target_xy) * tf.log(1 - coord_pred_xy)))
+        # mse_wh
         coord_loss_wh = self.coord_wh_weight[head_index] * tf.reduce_sum(tf.square(tf.sqrt(response_target[:, 2:4]) -
                                                                                    tf.sqrt(response_pred[:, 2:4])))
         # 2.4 计算分类损失：loss(class)
@@ -361,6 +371,6 @@ class YOLOv3Loss(object):
             class_loss = self.cls_weight[head_index] * tf.reduce_sum(class_loss, name='class_loss')
         else:
             class_loss = tf.constant(0.0, dtype=tf.float32)
-    
+
         loss = tf.stack([coord_loss_xy, coord_loss_wh, noobj_iou_loss, obj_iou_loss, class_loss], axis=-1)
         return loss
