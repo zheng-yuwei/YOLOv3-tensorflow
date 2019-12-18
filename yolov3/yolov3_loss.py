@@ -332,9 +332,6 @@ class YOLOv3Loss(object):
         background_mask = tf.multiply(background_mask, (1 - object_mask))
         # 2. 计算各项损失：
         # 2.1 计算背景IOU损失：loss(noobj_iou)
-        # check一下learning note里的CE与MSE的比较，注意CE的loss比MSE要大，原论文用MSE该项损失权重是0.5
-        # 我们如果用CE，那么损失权重是不是应该更小？才能平衡该项loss与其他loss的影响
-        # noobj_iou_loss = tf.square(predict[:, :, :, 4])  # L2损失函数
         noobj_iou_loss = - tf.log(1 - predict[:, :, :, 4])  # CE损失函数
         if self.is_focal_loss:
             noobj_iou_loss = noobj_iou_loss * tf.pow(predict[:, :, :, 4], self.focal_gamma)
@@ -344,7 +341,6 @@ class YOLOv3Loss(object):
         response_target = tf.gather_nd(target, max_pos)
         response_pred = tf.gather_nd(predict, target_grid_xyz)
         # obj_iou_loss(score)，可以以IOU=1为ground truth，也可使用真实IOU(response_max_iou)为gt
-        # obj_iou_loss = tf.square(1 - response_pred[:, 4])  # L2损失函数
         obj_iou_loss = - tf.log(response_pred[:, 4])  # CE损失函数
         if self.is_focal_loss:
             obj_iou_loss = obj_iou_loss * (tf.pow(1 - response_pred[:, 4], self.focal_gamma) * self.focal_alpha)
@@ -364,7 +360,6 @@ class YOLOv3Loss(object):
         # 2.4 计算分类损失：loss(class)
         if self.class_num >= 1:
             targets_class_prob = tf.one_hot(tf.cast(response_target[:, 4], dtype=tf.int32), depth=self.class_num)
-            # class_loss = tf.square(targets_class_prob - response_pred[:, 5:])  # L2损失
             class_loss = - targets_class_prob * tf.log(response_pred[:, 5:])  # CE损失函数
             class_loss = self.cls_weight[head_index] * tf.reduce_sum(class_loss, name='class_loss')
         else:
