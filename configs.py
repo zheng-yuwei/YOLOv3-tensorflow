@@ -47,9 +47,9 @@ FLAGS.head_grid_sizes = [np.divide(FLAGS.input_image_size[0:2], 8).astype(np.int
                          np.divide(FLAGS.input_image_size[0:2], 16).astype(np.int),
                          np.divide(FLAGS.input_image_size[0:2], 32).astype(np.int)]  # [H, W],
 FLAGS.head_names = ['yolov3_head_8', 'yolov3_head_16', 'yolov3_head_32', ]
-FLAGS.iou_thresh = 0.7  # 大于该IOU阈值，不计算该anchor的背景IOU误差
-# 不同head(/8, /16, /32)不同损失项的权：[coord_xy, coord_wh, noobj, obj, cls_prob]
-FLAGS.loss_weights = [(10, 200, 0.1, 20, 10), (5, 100, 0.2, 20, 1), (5, 100, 0.2, 20, 1)]
+FLAGS.iou_thresh = 0.8  # 大于该IOU阈值，不计算该anchor的背景IOU误差
+# 不同head(/8, /16, /32)不同损失项的权：[coord_xy, coord_wh, noobj, obj, cls_prob]，蓝，绿，红
+FLAGS.loss_weights = [(5, 5, 0.05, 3, 1), (8, 8, 0.05, 2, 1), (10, 10, 0.05, 2, 1)]
 # 训练参数
 FLAGS.train_set_size = 20
 FLAGS.val_set_size = 20
@@ -60,13 +60,13 @@ FLAGS.rectified_loss_weight = [1.0, 1.0, 1.0]  # 前期矫正坐标的损失的�
 FLAGS.epoch = 300
 FLAGS.init_lr = 0.0002  # nadam推荐使用值
 # 训练参数
-FLAGS.mode = 'train'  # train, test, predict, save_pb, save_serving
+FLAGS.mode = 'test'  # train, test, predict, save_pb, save_serving
 FLAGS.model_backbone = YOLOv3Detector.BACKBONE_RESNET_18
 FLAGS.optimizer = 'radam'  # sgdm, adam, radam
 FLAGS.is_augment = True
 FLAGS.is_label_smoothing = False
 FLAGS.is_focal_loss = False
-FLAGS.focal_alpha = 0.25
+FLAGS.focal_alpha = 1.0
 FLAGS.focal_gamma = 2.0
 FLAGS.is_gradient_harmonized = False
 FLAGS.is_tiou_recall = False
@@ -75,6 +75,7 @@ FLAGS.type += ('-aug' if FLAGS.is_augment else '')
 FLAGS.type += ('-smooth' if FLAGS.is_label_smoothing else '')
 FLAGS.type += ('-focal' if FLAGS.is_focal_loss else '')
 FLAGS.type += ('-ghm' if FLAGS.is_gradient_harmonized else '')
+FLAGS.type += ('-TIOU' if FLAGS.is_tiou_recall else '')
 FLAGS.log_path = 'logs/log-{}.txt'.format(FLAGS.type)
 # 训练参数
 FLAGS.steps_per_epoch = int(np.ceil(FLAGS.train_set_size / FLAGS.batch_size))
@@ -95,7 +96,7 @@ FLAGS.serving_model_dir = FLAGS.root_path + 'models/serving'
 FLAGS.pb_model_dir = FLAGS.root_path + 'models/pb'
 
 # 测试参数
-FLAGS.confidence_thresh = 0.85  # 基础置信度
+FLAGS.confidence_thresh = 0.8  # 基础置信度
 FLAGS.nms_thresh = 0.4  # nms阈值
 FLAGS.save_path = 'dataset/test_result/'  # 测试结果图形报错路径
 FLAGS.image_root_path = None  # 预测图片的根目录

@@ -350,19 +350,17 @@ class YOLOv3Loss(object):
             obj_iou_loss = obj_iou_loss * (tf.pow(1 - response_pred[:, 4], self.focal_gamma) * self.focal_alpha)
         obj_iou_loss = self.obj_weight[head_index] * tf.reduce_sum(obj_iou_loss)  # CE损失函数
         # 2.3 计算坐标损失：loss(xy) + loss(wh)
-        # mse_xy
-        # coord_loss_xy = self.coord_xy_weight[head_index] * tf.reduce_sum(tf.square(response_target[:, 0:2] -
-        #                                                                            response_pred[:, 0:2]))
+        # 计算scale：又box大小决定的权重，小box权重越大
+        scale = tf.expand_dims(2 - response_target[:, 2] * response_target[:, 3] / (height * width), axis=-1)
         # log_xy
         coord_int = tf.floor(response_target[:, 0:2])
         coord_target_xy = response_target[:, 0:2] - coord_int
         coord_pred_xy = response_pred[:, 0:2] - coord_int
-        coord_loss_xy = self.coord_xy_weight[head_index] * tf.reduce_sum(
-            -(coord_target_xy * tf.log(coord_pred_xy) +
-              (1 - coord_target_xy) * tf.log(1 - coord_pred_xy)))
+        coord_loss_xy = - (coord_target_xy * tf.log(coord_pred_xy) + (1 - coord_target_xy) * tf.log(1 - coord_pred_xy))
+        coord_loss_xy = self.coord_xy_weight[head_index] * tf.reduce_sum(scale * coord_loss_xy)
         # mse_wh
-        coord_loss_wh = self.coord_wh_weight[head_index] * tf.reduce_sum(tf.square(tf.sqrt(response_target[:, 2:4]) -
-                                                                                   tf.sqrt(response_pred[:, 2:4])))
+        coord_loss_wh = tf.square(tf.log(response_target[:, 2:4]) - tf.log(response_pred[:, 2:4]))
+        coord_loss_wh = self.coord_wh_weight[head_index] * tf.reduce_sum(scale * coord_loss_wh)
         # 2.4 计算分类损失：loss(class)
         if self.class_num >= 1:
             targets_class_prob = tf.one_hot(tf.cast(response_target[:, 4], dtype=tf.int32), depth=self.class_num)
