@@ -60,7 +60,7 @@ FLAGS.rectified_loss_weight = [1.0, 1.0, 1.0]  # 前期矫正坐标的损失的�
 FLAGS.epoch = 300
 FLAGS.init_lr = 0.0002  # nadam推荐使用值
 # 训练参数
-FLAGS.mode = 'test'  # train, test, predict, save_pb, save_serving
+FLAGS.mode = 'train'  # train, test, predict, save_pb, save_serving
 FLAGS.model_backbone = YOLOv3Detector.BACKBONE_RESNET_18
 FLAGS.optimizer = 'radam'  # sgdm, adam, radam
 FLAGS.is_augment = True
