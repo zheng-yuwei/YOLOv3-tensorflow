@@ -134,5 +134,5 @@ MixNet是Google在**轻量级网络结构**上探索的又一成果。
 - [ ] GIOU;
 - [x] TIOU-Recall;
 - [ ] Guassian YOLO;
-- [ ] 模型测试，计算mAP；
+- [x] 模型测试，计算mAP；[Cartucho/mAP](https://github.com/Cartucho/mAP)
 

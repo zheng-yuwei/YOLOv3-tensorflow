@@ -76,6 +76,7 @@ def test(yolov3_trainer, yolov3_decoder, save_path=None):
                 image_path = os.path.join(save_path, str(os.path.basename(image_path), 'utf-8'))
                 YOLOv3PostProcessor.visualize(image, in_boxes, src_box_size=input_box_size, image_path=image_path)
             # TODO 根据预测结果，计算AP，mAP
+            # 使用开源库 [Cartucho/mAP](https://github.com/Cartucho/mAP)，真香
     return
 
 
