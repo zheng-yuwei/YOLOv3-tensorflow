@@ -38,9 +38,9 @@ class RAdam(tf.keras.optimizers.Optimizer):
                  amsgrad=False,
                  warmup_coef=1.,
                  **kwargs):
-        super(RAdam, self).__init__(**kwargs)
+        super(RAdam, self).__init__('radam', **kwargs)
         with K.name_scope(self.__class__.__name__):
-            self.iterations = K.variable(0, dtype='int64', name='iterations')
+            self.iterations = K.variable(0, dtype='int64', name='iterations_radam')
             self.lr = K.variable(lr, name='lr')
             self.beta_1 = K.variable(beta_1, name='beta_1')
             self.beta_2 = K.variable(beta_2, name='beta_2')
