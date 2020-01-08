@@ -94,7 +94,7 @@ def predict(yolov3_trainer, yolov3_decoder, image_paths, save_path):
     input_box_size = np.tile(FLAGS.input_image_size[1::-1], [2])  # 网络输入尺度，(W, H)
     for image_path in image_paths:
         # 读取uint8图片，归一化：[0, 1]的float32 + 原比例resize
-        image = tf.constant(cv2.imread(image_path), dtype=tf.int8)
+        image = tf.constant(cv2.imread(image_path), dtype=tf.uint8)
         image = tf.image.resize_image_with_pad(image, target_height=input_box_size[1], target_width=input_box_size[0],
                                                method=tf.image.ResizeMethod.NEAREST_NEIGHBOR)
         image = tf.image.convert_image_dtype(image, dtype=tf.float32)
